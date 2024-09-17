@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: request-router
+  namespace: ecommerce-shared
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: request-router
+    meta.helm.sh/release-namespace: ecommerce-shared
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+  selector:
+    matchLabels:
+      app: request-router
+  template:
+    metadata:
+      labels:
+        app: request-router
+        domain: shared
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: envoy
+          imagePullPolicy: IfNotPresent
+          image: envoyproxy/envoy:{{ .Values.envoy.image.tag }}
+          resources:
+            requests:
+              memory: {{ .Values.envoy.resources.requests.memory | quote }}
+              cpu: {{ .Values.envoy.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.envoy.resources.limits.memory | quote }}
+              cpu: {{ .Values.envoy.resources.limits.cpu | quote }}
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: envoy-config
+              mountPath: /etc/envoy/envoy.yaml
+              subPath: envoy.yaml
+        - name: opa
+          imagePullPolicy: IfNotPresent
+          image: openpolicyagent/opa:{{ .Values.opa.image.tag }}
+          args:
+            - run
+            - --server
+            - --addr=localhost:8181
+            - --log-level=debug
+            - --diagnostic-addr=0.0.0.0:8282
+            - --config-file=/config/config.yaml
+            - /policy/tenant_policy.rego
+          volumeMounts:
+            - mountPath: /config
+              name: opa-envoy-config
+            - mountPath: /policy
+              name: opa-envoy-policies
+          resources:
+            requests:
+              memory: {{ .Values.opa.resources.requests.memory | quote }}
+              cpu: {{ .Values.opa.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.opa.resources.limits.memory | quote }}
+              cpu: {{ .Values.opa.resources.limits.cpu | quote }}
+          ports:
+            - containerPort: 8181
+            - containerPort: 9191
+          livenessProbe:
+            httpGet:
+              path: /health?plugins
+              port: 8282
+          readinessProbe:
+            httpGet:
+              path: /health?plugins
+              port: 8282
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-config
+            items:
+              - key: envoy.yaml
+                path: envoy.yaml
+        - name: opa-envoy-config
+          configMap:
+            name: opa-envoy-config
+        - name: opa-envoy-policies
+          configMap:
+            name: opa-envoy-policies

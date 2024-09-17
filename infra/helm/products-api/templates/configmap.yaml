@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: products-api
+  namespace: {{ .Values.namespace }}
+data:
+  shop-name: {{ .Values.app.shopName }}

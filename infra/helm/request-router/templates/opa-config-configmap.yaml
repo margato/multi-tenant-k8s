@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-envoy-config
+  namespace: ecommerce-shared
+data:
+  config.yaml: |
+    plugins:
+      envoy_ext_authz_grpc:
+        addr: :9191
+        path: ecommerce/authz/allow
+        dry-run: false
+        enable-reflection: false
+        grpc-max-recv-msg-size: 40194304
+        grpc-max-send-msg-size: 2147483647
+        skip-request-body-parse: false
+        enable-performance-metrics: false
+    decision_logs:
+      console: true

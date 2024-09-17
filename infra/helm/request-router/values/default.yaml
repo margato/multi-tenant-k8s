@@ -1,0 +1,39 @@
+envoy:
+  image:
+    tag: v1.31-latest
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 100m
+    limits:
+      memory: 128Mi
+      cpu: 200m
+
+opa:
+  image:
+    tag: 0.68.0-envoy-12
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 100m
+    limits:
+      memory: 128Mi
+      cpu: 200m
+
+pod:
+  hpa:
+    minReplicas: 1
+    maxReplicas: 2
+    cpuUtilizationPercentage: 70
+  servicePort: 8080
+
+tenants:
+  - id: tenant-1
+    namespace: ecommerce-tenant-1
+    serviceHost: products-api.ecommerce-tenant-1.svc.cluster.local
+  - id: tenant-2
+    namespace: ecommerce-tenant-2
+    serviceHost: products-api.ecommerce-tenant-2.svc.cluster.local
+  - id: tenant-3
+    namespace: ecommerce-tenant-3
+    serviceHost: products-api.ecommerce-tenant-3.svc.cluster.local

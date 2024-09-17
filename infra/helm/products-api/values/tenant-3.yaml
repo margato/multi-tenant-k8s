@@ -1,0 +1,21 @@
+namespace: ecommerce-tenant-3
+app:
+  tenant:
+  shopName: Tenant 3 Shop
+image:
+  tag: 1.0.0
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 100m
+  limits:
+    memory: 128Mi
+    cpu: 200m
+
+servicePort: 8080
+
+hpa:
+  minReplicas: 4
+  maxReplicas: 6
+  cpuUtilizationPercentage: 70

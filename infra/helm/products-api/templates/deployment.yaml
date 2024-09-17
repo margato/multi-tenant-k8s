@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-api
+  namespace: {{ .Values.namespace }}
+  labels: 
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: products-api
+    meta.helm.sh/release-namespace: {{ .Values.namespace }}
+spec:
+  revisionHistoryLimit: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+  selector:
+    matchLabels:
+      app: products-api
+  template:
+    metadata:
+      labels:
+        app: products-api
+        domain: products
+        tenant: {{ .Values.app.tenant }}
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: products-api
+          imagePullPolicy: Never
+          image: osvaldomargato/products-api:{{ .Values.image.tag }}
+          resources:
+            requests:
+              memory: {{ .Values.resources.requests.memory | quote }}
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.resources.limits.memory | quote }}
+              cpu: {{ .Values.resources.limits.cpu | quote }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SHOP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: products-api
+                  key: shop-name
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 1
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
