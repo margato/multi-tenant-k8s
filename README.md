@@ -96,4 +96,4 @@ Response 200 OK:
 This endpoint is from the **products-api**, and shows the hostname and shop name; you should see the name of the tenant in the shop name attribute.
 
 This JWT token was generated using [JSON Web Token Builder](http://jwtbuilder.jamiekurtz.com/) and includes a custom claim called `tenant`.
-This particular token is for tenant `tenant-1`, if you want explore further, you can generate another token for tenant `tenant-2` e tenant `tenant-3`.
+This particular token is for tenant `tenant-1`, if you want to explore further, you can generate another token for tenant `tenant-2` and tenant `tenant-3`.
